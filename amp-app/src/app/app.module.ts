@@ -19,6 +19,10 @@ import { HTTP_INTERCEPTORS, HttpClientModule } from "@angular/common/http";
 import { TokenInterceptor } from "./interceptors/token.interceptor";
 import { LoaderComponent } from './loader/loader.component';
 import { MatProgressSpinnerModule } from "@angular/material";
+import { StoreModule } from "@ngrx/store";
+import { reducers } from './store/reducers';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { environment } from '../environments/environment';
 
 @NgModule({
   declarations: [
@@ -42,6 +46,14 @@ import { MatProgressSpinnerModule } from "@angular/material";
     HttpClientModule,
     MatProgressSpinnerModule,
     BrowserAnimationsModule,
+    StoreModule,
+    StoreModule.forRoot(reducers, {
+      runtimeChecks: {
+        strictStateImmutability: true,
+        strictActionImmutability: true,
+      }
+    }),
+    !environment.production ? StoreDevtoolsModule.instrument() : [],
   ],
   providers: [
     {

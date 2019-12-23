@@ -4,6 +4,8 @@ import { Router } from "@angular/router";
 import { LoaderService } from "../services/loader.service";
 import { Subject } from "rxjs";
 import { takeUntil } from "rxjs/operators";
+import { Store } from "@ngrx/store";
+import { AmpState } from "../store";
 
 @Component({
   selector: 'amp-root',
@@ -23,12 +25,14 @@ export class AppComponent implements OnDestroy, AfterContentChecked{
     private router: Router,
     private loaderService: LoaderService,
     private cdr: ChangeDetectorRef,
+    private store: Store<AmpState>,
   ) {
   }
 
   public ngOnInit() {
     this.authService.checkLogin();
-    this.authService.isAuthenticated().pipe(
+
+    this.store.select("auth").pipe(
       takeUntil(this.destroy),
     ).subscribe(
       auth => {

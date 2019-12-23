@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from "../services/auth.service";
-import { filter, switchMap, tap } from 'rxjs/operators';
+import { filter, switchMap, tap, map } from 'rxjs/operators';
+import { Store } from "@ngrx/store";
+import { AmpState } from "../store/reducers";
 
 @Component({
   selector: 'amp-header',
@@ -14,10 +16,11 @@ export class HeaderComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
+    private store: Store<AmpState>,
   ) { }
 
   public ngOnInit() {
-    this.authService.isAuthenticated().pipe(
+    this.store.select('auth').pipe(
       tap(auth => this.isAuthorized = auth),
       filter(auth => !!auth),
       switchMap(() => this.authService.getCurrentUser()),

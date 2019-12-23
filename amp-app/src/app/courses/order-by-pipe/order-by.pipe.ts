@@ -9,7 +9,7 @@ export class OrderByPipe implements PipeTransform {
   public transform(array: Course[], fieldName: string, query?: string): Course[] {
     switch(fieldName){
       case 'creationDate':
-        return array.sort((item1, item2) => this.compareDates(item1[fieldName], item2[fieldName]));
+        return array.slice().sort((item1, item2) => this.compareDates(item1[fieldName], item2[fieldName]));
       case 'title':
         return array.filter(item => item.title.toLowerCase().includes(query.toLowerCase()));
       default:

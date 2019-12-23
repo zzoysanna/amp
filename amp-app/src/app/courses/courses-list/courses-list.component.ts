@@ -5,7 +5,9 @@ import { CourseDeleteDialogComponent } from "../course-delete-dialog/course-dele
 import { Router } from "@angular/router";
 import { CoursesService } from "../../services/courses.service";
 import { Course } from "../../models/course.model";
-import { filter } from "rxjs/operators";
+import { filter, tap } from "rxjs/operators";
+import { AmpState } from "../../store/reducers";
+import { Store } from "@ngrx/store";
 
 @Component({
   selector: 'amp-courses-list',
@@ -22,10 +24,16 @@ export class CoursesListComponent implements OnInit {
     private coursesService: CoursesService,
     public dialog: MatDialog,
     private router: Router,
+    private store: Store<AmpState>,
   ) { }
 
   public ngOnInit() {
-    this.coursesService.getCourses().pipe(
+    this.store.select('courses').pipe(
+      tap(courses => {
+        if(!courses) {
+          return this.coursesService.getCoursesFirst();
+        }
+      }),
       filter(courses => !!courses),
     ).subscribe(
       courses => {
@@ -33,7 +41,7 @@ export class CoursesListComponent implements OnInit {
         this.filteredCourses = this.courses;
       },
       error => console.error(error),
-    );
+    )
   }
 
   public onLoadMore(): void {

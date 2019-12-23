@@ -1,65 +1,53 @@
 import { Injectable } from '@angular/core';
 import { Course } from "../models/course.model";
-import { BehaviorSubject, Observable, Subscription } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../../environments/environment";
-import { tap } from "rxjs/operators";
+import { map, switchMap, take } from "rxjs/operators";
+import { AmpState } from "../store/reducers";
+import { Store } from "@ngrx/store";
+import { AddCoursesAction, EditCourseAction, SetCoursesAction } from "../store/actions/courses.actions";
 
 @Injectable({
   providedIn: 'root'
 })
 export class CoursesService {
-  private coursesStream = new BehaviorSubject<Course[]>(null);
+  private coursesToLoad = 5;
 
   constructor(
     private http: HttpClient,
+    private store: Store<AmpState>,
   ) { }
 
-  get courses(): Course[] {
-    return this.coursesStream.getValue();
-  }
-
-  public getCourses(): Observable<Course[]> {
-    if(!this.coursesStream.getValue()) {
-      return this.getCoursesPartial();
-    }
-    return this.coursesStream;
-  }
-
-  public getCoursesPartial(count: number = 5): Observable<Course[]> {
-    const currentCourses = this.coursesStream.getValue();
-    const start = currentCourses ? currentCourses.length : 0;
-    this.http.get<Course[]>(`${environment.rest}/courses?start=${start}&count=${count}`).subscribe(
+  public getCoursesPartial(count: number = this.coursesToLoad): void {
+    this.store.select('courses').pipe(
+      take(1),
+      map(courses => courses.length),
+      switchMap(start => this.http.get<Course[]>(`${environment.rest}/courses?start=${start}&count=${count}`)),
+    ).subscribe(
       courses => {
-        if(currentCourses) {
-          currentCourses.push(...courses);
-          this.coursesStream.next(currentCourses);
-        } else {
-          this.coursesStream.next(courses);
-        }
+        this.store.dispatch(AddCoursesAction({data: courses}));
       }
     );
-    return this.coursesStream;
   }
 
-  public getCoursesAll(): Observable<Course[]> {
-    return this.http.get<Course[]>(`${environment.rest}/courses`);
+  public getCoursesFirst(): void {
+    this.http.get<Course[]>(`${environment.rest}/courses?start=0&count=${this.coursesToLoad}`).subscribe(
+      courses => this.store.dispatch(SetCoursesAction({data: courses})),
+    );
   }
 
-  public search(query: string): Observable<Course[]> {
+  public search(query: string): void {
     this.http.get<Course[]>(`${environment.rest}/courses?textFragment=${query}`).subscribe(
       courses => {
-        this.coursesStream.next(courses);
+        this.store.dispatch(SetCoursesAction({data: courses}));
       }
     );
-    return this.coursesStream;
   }
 
   public createCourse(course: Course): void {
-    this.http.post<Course>(`${environment.rest}/courses`, course).pipe(
-      tap(() => this.coursesStream.next(null)),
-    ).subscribe(
-      () => this.getCourses(),
+    this.http.post<Course>(`${environment.rest}/courses`, course).subscribe(
+      () => this.store.dispatch(AddCoursesAction({data: [course]})),
       error => console.error(error),
     );
   }
@@ -69,25 +57,17 @@ export class CoursesService {
   }
 
   public updateCourse(newCourse: Course): void {
-    this.courses.forEach((course,i) => {
-      if(course.id === newCourse.id) {
-        this.courses[i] = newCourse;
-      }
-    });
-    this.coursesStream.next(this.courses);
+    this.store.dispatch(EditCourseAction({data: newCourse}));
   }
 
   public removeItem(id: string): Subscription {
-    return this.http.delete(`${environment.rest}/courses/${id}`).pipe(
-      tap(() => this.coursesStream.next(null)),
-    ).subscribe(
-      () => this.getCourses(),
+    return this.http.delete(`${environment.rest}/courses/${id}`).subscribe(
+      () => this.getCoursesFirst(),
       error => console.error(error),
     );
   }
 
   public onClearSearch(): void {
-    this.coursesStream.next(null);
-    this.getCourses();
+    this.getCoursesFirst();
   }
 }

@@ -5,6 +5,9 @@ import { HttpClient } from "@angular/common/http";
 import { environment } from "../../environments/environment";
 import { User } from "../models/user.model";
 import { map } from "rxjs/operators";
+import { Store } from "@ngrx/store";
+import { AmpState } from "../store/reducers";
+import { AuthLogOnAction, AuthLogOffAction } from "../store/actions/auth.actions";
 
 @Injectable({
   providedIn: 'root'
@@ -17,6 +20,7 @@ export class AuthService {
   constructor(
     private router: Router,
     private http: HttpClient,
+    private store: Store<AmpState>,
   ) { }
 
   public checkLogin(): void {
@@ -24,7 +28,7 @@ export class AuthService {
     if(token) {
       this.getUserByToken(token).subscribe(
         user => {
-          this.isAuthorized.next(true);
+          this.store.dispatch(AuthLogOnAction());
           this.userStream.next(user);
         }
       );
@@ -37,7 +41,7 @@ export class AuthService {
         if(user.password === password) {
           this.userStream.next(user);
           localStorage.setItem(environment.tokenKey, user.fakeToken);
-          this.isAuthorized.next(true);
+          this.store.dispatch(AuthLogOnAction());
           this.router.navigateByUrl('courses');
         } else {
           console.error('wrong password');
@@ -60,12 +64,10 @@ export class AuthService {
   }
 
   public logout(): void {
-    if(this.isAuthorized.getValue()) {
-      localStorage.removeItem(environment.tokenKey);
-      this.isAuthorized.next(false);
-      this.userStream.next(null);
-      this.router.navigateByUrl('login');
-    }
+    localStorage.removeItem(environment.tokenKey);
+    this.store.dispatch(AuthLogOffAction());
+    this.userStream.next(null);
+    this.router.navigateByUrl('login');
   }
 
   public isAuthenticated(): Observable<boolean> {
