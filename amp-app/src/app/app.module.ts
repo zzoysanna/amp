@@ -22,14 +22,19 @@ import { SharedModule } from './shared/shared.module';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from "@ngx-translate/http-loader";
 import { CoreModule } from "./core/core.module";
+import { FormComponent } from './form/form.component';
+import { FormLineComponent } from './form/form-line/form-line.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     NotFoundComponent,
     LoaderComponent,
+    FormComponent,
+    FormLineComponent,
   ],
   imports: [
+    ReactiveFormsModule,
     BrowserModule,
     AppRouting,
     CoursesModule,

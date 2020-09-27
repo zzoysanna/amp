@@ -1,0 +1,19 @@
+<ng-container *ngIf="form">
+
+    <button [disabled]="form.invalid">submit</button>
+
+    <form [formGroup]="form">
+        <amp-form-line 
+            *ngFor="let control of form.controls; let i = index"
+            (onDelete)="deleteItem(i)"
+            [group]="form.controls[i]">
+        </amp-form-line>
+    </form>
+
+    <button (click)="addItem()">add node</button>
+
+    <button (click)="printForm()">show form</button>
+
+    <button (click)="printNodes()">print nodes</button>
+
+</ng-container>

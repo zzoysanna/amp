@@ -1,0 +1,7 @@
+<select name="" [formControl]="group.get('type')">
+    <option value="twitter">twitter</option>
+    <option value="instagram">instargam</option>
+    <option value="vk">vkontakte</option>
+</select>
+<input type="text" [formControl]="group.get('value')">
+<button (click)="onDelete.emit()">delete</button>

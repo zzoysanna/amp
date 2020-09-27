@@ -4,11 +4,16 @@ import { CoursesListComponent } from "./courses/courses-list/courses-list.compon
 import { NotFoundComponent } from "./not-found/not-found.component";
 import { LoginFormComponent } from "./core/login-form/login-form.component";
 import { AuthGuard } from "./services/auth.guard";
+import { FormComponent } from './form/form.component';
 
 const routes: Routes = [
   {
     path: 'login',
     component: LoginFormComponent,
+  },
+  {
+    path: 'form',
+    component: FormComponent,
   },
   {
     path: 'examples',
